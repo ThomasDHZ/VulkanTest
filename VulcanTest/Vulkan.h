@@ -6,6 +6,7 @@
 #include <functional>
 #include <cstdlib>
 #include "VulkanWindow.h"
+#include "VulkanDebugger.h"
 
 class Vulkan
 { 
@@ -15,17 +16,14 @@ private:
 
 	VulkanWindow Window;
 	VkInstance VulkanInstance;
-	VkDebugUtilsMessengerEXT debugMessenger;
+	VulkanDebugger VulkenDebug;
 
 	void CreateVulkanInstance();
+	void SetUpDebugger();
 	void MainLoop();
 
-	void CreateDebugMessengerInfo(VkDebugUtilsMessengerCreateInfoEXT& DebugInfo);
-	void SetUpDebugger();
 	bool ValidationLayerSupport();
 	std::vector<const char*> GetRequiredExtensions();
-
-	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallBack(VkDebugUtilsMessageSeverityFlagBitsEXT MessageSeverity, VkDebugUtilsMessageTypeFlagsEXT MessageType, const VkDebugUtilsMessengerCallbackDataEXT* CallBackData, void* UserData);
 public:
 	Vulkan(unsigned int width, unsigned int height, const char* windowName);
 	~Vulkan();
