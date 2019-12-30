@@ -151,6 +151,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QueueFamilyStruct.h" />
+    <ClInclude Include="SwapChainSupportDetailsStruct.h" />
     <ClInclude Include="Vulkan.h" />
     <ClInclude Include="VulkanDebugger.h" />
     <ClInclude Include="VulkanWindow.h" />

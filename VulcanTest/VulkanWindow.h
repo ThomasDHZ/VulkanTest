@@ -16,6 +16,8 @@ public:
 	~VulkanWindow();
 
 	GLFWwindow* GetWindowPtr() { return Window; }
+	unsigned int GetWidth() { return Width; }
+	unsigned int GetHeight() { return Height; }
 
 	VulkanWindow& operator=(const VulkanWindow& rhs);
 };
