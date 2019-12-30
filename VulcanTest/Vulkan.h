@@ -21,9 +21,12 @@ private:
 	VkPhysicalDevice VideoCardDevice;
 	VkDevice Device;
 	VkQueue GraphicsQueue;
+	VkSurfaceKHR WindowSurface;
+	VkQueue PresentationQueue;
 
-	void CreateVulkanInstance();
+	void SetUpVulkanInstance();
 	void SetUpDebugger();
+	void SetUpWindowSurface();
 	void SetUpVideoCard();
 	void SetUpLogicalDevice();
 	void MainLoop();

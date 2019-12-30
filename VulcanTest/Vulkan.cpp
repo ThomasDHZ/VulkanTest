@@ -1,4 +1,5 @@
 #include "Vulkan.h"
+#include <set>
 
 Vulkan::Vulkan(unsigned int width, unsigned int height, const char* windowName) : EnableValidationLayers(true)
 {
@@ -8,8 +9,9 @@ Vulkan::Vulkan(unsigned int width, unsigned int height, const char* windowName) 
 
 	ValidationLayers.emplace_back("VK_LAYER_KHRONOS_validation");
 
-	CreateVulkanInstance();
+	SetUpVulkanInstance();
 	SetUpDebugger();
+	SetUpWindowSurface();
 	SetUpVideoCard();
 	SetUpLogicalDevice();
 }
@@ -21,12 +23,13 @@ Vulkan::~Vulkan()
 		VulkenDebug.DestroyDebugUtilsMessengerEXT(VulkanInstance, nullptr);
 	}
 	vkDestroyDevice(Device, nullptr);
+	vkDestroySurfaceKHR(VulkanInstance, WindowSurface, nullptr);
 	vkDestroyInstance(VulkanInstance, nullptr);
 	glfwDestroyWindow(Window.GetWindowPtr());
 	glfwTerminate();
 }
 
-void Vulkan::CreateVulkanInstance()
+void Vulkan::SetUpVulkanInstance()
 {
 	if (EnableValidationLayers && !ValidationLayerSupport())
 	{
@@ -88,6 +91,15 @@ void Vulkan::SetUpDebugger()
 	VulkenDebug.SetUpDebugger(VulkanInstance);
 }
 
+void Vulkan::SetUpWindowSurface()
+{
+	VkResult Result = glfwCreateWindowSurface(VulkanInstance, Window.GetWindowPtr(), nullptr, &WindowSurface);
+	if (Result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create window surface.");
+	}
+}
+
 void Vulkan::SetUpVideoCard()
 {
 	unsigned int VideoCardCount = 0;
@@ -121,18 +133,24 @@ void Vulkan::SetUpLogicalDevice()
 	QueueFamilyIndices Indices = QueueFamilies(VideoCardDevice);
 	float QueuePriority = 1.0f;
 
-	VkDeviceQueueCreateInfo QueueCreateInfo = {};
-	QueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	QueueCreateInfo.queueFamilyIndex = Indices.GraphicsFamily.value();
-	QueueCreateInfo.queueCount = 1;
-	QueueCreateInfo.pQueuePriorities = &QueuePriority;
+	std::vector<VkDeviceQueueCreateInfo> QueueCreateInfoList;
+	std::set<unsigned int> UniqueQueuFamilies = { Indices.GraphicsFamily.value(), Indices.PresentationFamily.value() };
 
+	for (auto QueueFamily : UniqueQueuFamilies)
+	{
+		VkDeviceQueueCreateInfo QueueCreateInfo = {};
+		QueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		QueueCreateInfo.queueFamilyIndex = Indices.GraphicsFamily.value();
+		QueueCreateInfo.queueCount = 1;
+		QueueCreateInfo.pQueuePriorities = &QueuePriority;
+		QueueCreateInfoList.emplace_back(QueueCreateInfo);
+	}
 	VkPhysicalDeviceFeatures DeviceFeatures = {};
 
 	VkDeviceCreateInfo CreateInfo = {};
 	CreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	CreateInfo.pQueueCreateInfos = &QueueCreateInfo;
-	CreateInfo.queueCreateInfoCount = 1;
+	CreateInfo.pQueueCreateInfos = QueueCreateInfoList.data();
+	CreateInfo.queueCreateInfoCount = static_cast<uint32_t>(QueueCreateInfoList.size());
 	CreateInfo.pEnabledFeatures = &DeviceFeatures;
 	CreateInfo.enabledExtensionCount = 0;
 
@@ -153,6 +171,7 @@ void Vulkan::SetUpLogicalDevice()
 	}
 
 	vkGetDeviceQueue(Device, Indices.GraphicsFamily.value(), 0, &GraphicsQueue);
+	vkGetDeviceQueue(Device, Indices.PresentationFamily.value(), 0, &PresentationQueue);
 }
 
 QueueFamilyIndices Vulkan::QueueFamilies(VkPhysicalDevice device)
@@ -166,9 +185,17 @@ QueueFamilyIndices Vulkan::QueueFamilies(VkPhysicalDevice device)
 
 	for (int x = 0; x <= QueueFamilyList.size() - 1; x++)
 	{
+		VkBool32 PresentationSupport = false;
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, x, WindowSurface, &PresentationSupport);
+
 		if (QueueFamilyList[x].queueFlags && VK_QUEUE_GRAPHICS_BIT)
 		{
 			Indices.GraphicsFamily = x;
+		}
+
+		if (PresentationSupport)
+		{
+			Indices.PresentationFamily = x;
 		}
 
 		if (Indices.IsComplete())
@@ -257,7 +284,7 @@ void Vulkan::GetVulkanExtenstions()
 
 	vkEnumerateInstanceExtensionProperties(nullptr, &ExtenstionCount, ExtensionList.data());
 
-	std::cout << "Availabe Extensions: " << std::endl;
+	std::cout << "Available Extensions: " << std::endl;
 	for (const auto& Extension : ExtensionList)
 	{
 		std::cout << "\t" << Extension.extensionName << std::endl;
