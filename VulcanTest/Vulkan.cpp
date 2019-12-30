@@ -2,12 +2,15 @@
 
 Vulkan::Vulkan(unsigned int width, unsigned int height, const char* windowName) : EnableValidationLayers(true)
 {
+	VideoCardDevice = VK_NULL_HANDLE;
+
 	Window = VulkanWindow(width, height, windowName);
 
 	ValidationLayers.emplace_back("VK_LAYER_KHRONOS_validation");
 
 	CreateVulkanInstance();
 	SetUpDebugger();
+	SetUpVideoCard();
 }
 
 Vulkan::~Vulkan()
@@ -81,6 +84,73 @@ void Vulkan::SetUpDebugger()
 	}
 
 	VulkenDebug.SetUpDebugger(VulkanInstance);
+}
+
+void Vulkan::SetUpVideoCard()
+{
+	unsigned int VideoCardCount = 0;
+	vkEnumeratePhysicalDevices(VulkanInstance, &VideoCardCount, nullptr);
+
+	if (VideoCardCount == 0)
+	{
+		throw std::runtime_error("Couldn't find any Video Cards with Vulkan support.");
+	}
+
+	std::vector<VkPhysicalDevice> VideoCardList(VideoCardCount);
+	vkEnumeratePhysicalDevices(VulkanInstance, &VideoCardCount, VideoCardList.data());
+
+	for (const auto& VideoCard : VideoCardList)
+	{
+		if (VideoCardVulkanCompatible(VideoCard))
+		{
+			VideoCardDevice = VideoCard;
+			break;
+		}
+	}
+
+	if (VideoCardDevice == VK_NULL_HANDLE)
+	{
+		throw std::runtime_error("Couldn't find any Video Cards with Vulkan support.");
+	}
+}
+
+QueueFamilyIndices Vulkan::QueueFamilies(VkPhysicalDevice device)
+{
+	QueueFamilyIndices Indices;
+	unsigned int QueueFamilyCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &QueueFamilyCount, nullptr);
+
+	std::vector<VkQueueFamilyProperties> QueueFamilyList(QueueFamilyCount);
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &QueueFamilyCount, QueueFamilyList.data());
+
+	for (int x = 0; x <= QueueFamilyList.size() - 1; x++)
+	{
+		if (QueueFamilyList[x].queueFlags && VK_QUEUE_GRAPHICS_BIT)
+		{
+			Indices.GraphicsFamily = x;
+		}
+
+		if (Indices.IsComplete())
+		{
+			break;
+		}
+	}
+
+	return Indices;
+}
+
+bool Vulkan::VideoCardVulkanCompatible(VkPhysicalDevice device)
+{
+	QueueFamilyIndices Indices = QueueFamilies(device);
+
+	VkPhysicalDeviceProperties VideoCardProperties;
+	VkPhysicalDeviceFeatures VideoCardFeatures;
+	vkGetPhysicalDeviceProperties(device, &VideoCardProperties);
+	vkGetPhysicalDeviceFeatures(device, &VideoCardFeatures);
+
+	return VideoCardProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU && 
+											 VideoCardFeatures.geometryShader &&
+											 Indices.IsComplete();
 }
 
 bool Vulkan::ValidationLayerSupport()

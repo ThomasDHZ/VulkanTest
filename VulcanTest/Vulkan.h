@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include "VulkanWindow.h"
 #include "VulkanDebugger.h"
+#include "QueueFamilyStruct.h"
 
 class Vulkan
 { 
@@ -17,11 +18,15 @@ private:
 	VulkanWindow Window;
 	VkInstance VulkanInstance;
 	VulkanDebugger VulkenDebug;
+	VkPhysicalDevice VideoCardDevice;
 
 	void CreateVulkanInstance();
 	void SetUpDebugger();
+	void SetUpVideoCard();
 	void MainLoop();
 
+	QueueFamilyIndices QueueFamilies(VkPhysicalDevice device);
+	bool VideoCardVulkanCompatible(VkPhysicalDevice device);
 	bool ValidationLayerSupport();
 	std::vector<const char*> GetRequiredExtensions();
 public:

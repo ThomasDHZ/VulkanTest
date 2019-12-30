@@ -38,5 +38,8 @@
     <ClInclude Include="VulkanDebugger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="QueueFamilyStruct.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
