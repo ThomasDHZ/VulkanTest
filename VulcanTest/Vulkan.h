@@ -19,10 +19,13 @@ private:
 	VkInstance VulkanInstance;
 	VulkanDebugger VulkenDebug;
 	VkPhysicalDevice VideoCardDevice;
+	VkDevice Device;
+	VkQueue GraphicsQueue;
 
 	void CreateVulkanInstance();
 	void SetUpDebugger();
 	void SetUpVideoCard();
+	void SetUpLogicalDevice();
 	void MainLoop();
 
 	QueueFamilyIndices QueueFamilies(VkPhysicalDevice device);

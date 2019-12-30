@@ -11,6 +11,7 @@ Vulkan::Vulkan(unsigned int width, unsigned int height, const char* windowName) 
 	CreateVulkanInstance();
 	SetUpDebugger();
 	SetUpVideoCard();
+	SetUpLogicalDevice();
 }
 
 Vulkan::~Vulkan()
@@ -19,6 +20,7 @@ Vulkan::~Vulkan()
 	{
 		VulkenDebug.DestroyDebugUtilsMessengerEXT(VulkanInstance, nullptr);
 	}
+	vkDestroyDevice(Device, nullptr);
 	vkDestroyInstance(VulkanInstance, nullptr);
 	glfwDestroyWindow(Window.GetWindowPtr());
 	glfwTerminate();
@@ -112,6 +114,45 @@ void Vulkan::SetUpVideoCard()
 	{
 		throw std::runtime_error("Couldn't find any Video Cards with Vulkan support.");
 	}
+}
+
+void Vulkan::SetUpLogicalDevice()
+{
+	QueueFamilyIndices Indices = QueueFamilies(VideoCardDevice);
+	float QueuePriority = 1.0f;
+
+	VkDeviceQueueCreateInfo QueueCreateInfo = {};
+	QueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	QueueCreateInfo.queueFamilyIndex = Indices.GraphicsFamily.value();
+	QueueCreateInfo.queueCount = 1;
+	QueueCreateInfo.pQueuePriorities = &QueuePriority;
+
+	VkPhysicalDeviceFeatures DeviceFeatures = {};
+
+	VkDeviceCreateInfo CreateInfo = {};
+	CreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	CreateInfo.pQueueCreateInfos = &QueueCreateInfo;
+	CreateInfo.queueCreateInfoCount = 1;
+	CreateInfo.pEnabledFeatures = &DeviceFeatures;
+	CreateInfo.enabledExtensionCount = 0;
+
+	if (EnableValidationLayers)
+	{
+		CreateInfo.enabledLayerCount = static_cast<unsigned int>(ValidationLayers.size());
+		CreateInfo.ppEnabledLayerNames = ValidationLayers.data();
+	}
+	else
+	{
+		CreateInfo.enabledLayerCount = 0;
+	}
+
+	VkResult Result = vkCreateDevice(VideoCardDevice, &CreateInfo, nullptr, &Device);
+	if (Result != VK_SUCCESS)
+	{
+		throw std::runtime_error("Failed to create logical device.");
+	}
+
+	vkGetDeviceQueue(Device, Indices.GraphicsFamily.value(), 0, &GraphicsQueue);
 }
 
 QueueFamilyIndices Vulkan::QueueFamilies(VkPhysicalDevice device)
