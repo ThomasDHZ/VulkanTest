@@ -145,16 +145,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Vulkan.cpp" />
     <ClCompile Include="VulkanDebugger.cpp" />
     <ClCompile Include="VulkanWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="QueueFamilyStruct.h" />
+    <ClInclude Include="Shader.h" />
     <ClInclude Include="SwapChainSupportDetailsStruct.h" />
     <ClInclude Include="Vulkan.h" />
     <ClInclude Include="VulkanDebugger.h" />
     <ClInclude Include="VulkanWindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shader.frag" />
+    <None Include="Shader.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

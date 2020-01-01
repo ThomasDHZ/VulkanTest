@@ -9,6 +9,7 @@
 #include "VulkanDebugger.h"
 #include "QueueFamilyStruct.h"
 #include "SwapChainSupportDetailsStruct.h"
+#include "Shader.h"
 
 class Vulkan
 { 
@@ -20,6 +21,8 @@ private:
 	unsigned int Width;
 	unsigned int Height;
 
+	ShaderCompiler SCompiler;
+
 	VulkanWindow Window;
 	VkInstance VulkanInstance;
 	VulkanDebugger VulkenDebug;
@@ -29,9 +32,19 @@ private:
 	VkSurfaceKHR WindowSurface;
 	VkQueue PresentationQueue;
 	VkSwapchainKHR SwapChain;
-	std::vector<VkImage> SwapChainImages;
 	VkFormat SwapChainImageFormat;
 	VkExtent2D SwapChainExtention;
+	VkRenderPass RenderPass;
+	VkPipelineLayout PipelineLayout;
+	VkPipeline GraphicsPipeline;
+	VkCommandPool CommandPool;
+	VkSemaphore ImageAvailableSemaphore;
+	VkSemaphore RenderFinishedSemaphore;
+
+	std::vector<VkImage> SwapChainImages;
+	std::vector<VkImageView> SwapChainImageViews;
+	std::vector<VkFramebuffer> SwapChainFramebuffers;
+	std::vector<VkCommandBuffer> CommandBuffers;
 
 	void SetUpVulkanInstance();
 	void SetUpDebugger();
@@ -39,6 +52,15 @@ private:
 	void SetUpVideoCard();
 	void SetUpLogicalDevice();
 	void SetUpSwapChain();
+	void SetUpImageView();
+	void SetUpRenderPass();
+	void SetUpGraphicsPipline();
+	void SetUpFrameBuffer();
+	void SetUpCommandPool();
+	void SetUpCommandBuffers();
+	void SetUpSemaphores();
+
+	void Draw();
 	void MainLoop();
 
 	QueueFamilyIndices QueueFamilies(VkPhysicalDevice device);
