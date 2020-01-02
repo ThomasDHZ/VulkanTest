@@ -14,6 +14,7 @@
 class Vulkan
 { 
 private:
+	const int MAX_FRAMES_IN_FLIGHT = 2;
 	const bool EnableValidationLayers;
 	std::vector<const char*> ValidationLayers;
 	std::vector<const char*> DeviceExtensions;
@@ -38,13 +39,17 @@ private:
 	VkPipelineLayout PipelineLayout;
 	VkPipeline GraphicsPipeline;
 	VkCommandPool CommandPool;
-	VkSemaphore ImageAvailableSemaphore;
-	VkSemaphore RenderFinishedSemaphore;
 
 	std::vector<VkImage> SwapChainImages;
 	std::vector<VkImageView> SwapChainImageViews;
 	std::vector<VkFramebuffer> SwapChainFramebuffers;
 	std::vector<VkCommandBuffer> CommandBuffers;
+	std::vector<VkSemaphore> ImageAvailableSemaphore;
+	std::vector<VkSemaphore> RenderFinishedSemaphore;
+	std::vector<VkFence> inFlightFences;
+	std::vector<VkFence> imagesInFlight;
+
+	size_t CurrentFrame = 0;
 
 	void SetUpVulkanInstance();
 	void SetUpDebugger();
@@ -58,7 +63,7 @@ private:
 	void SetUpFrameBuffer();
 	void SetUpCommandPool();
 	void SetUpCommandBuffers();
-	void SetUpSemaphores();
+	void SetUpSyncObjects();
 
 	void Draw();
 	void MainLoop();
