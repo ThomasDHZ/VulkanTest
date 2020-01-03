@@ -18,6 +18,8 @@ VulkanWindow::VulkanWindow(unsigned int width, unsigned int height, const char* 
 	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 	Window = glfwCreateWindow(width, height, windowName, nullptr, nullptr);
+	glfwSetWindowUserPointer(Window, this);
+	glfwSetFramebufferSizeCallback(Window, framebufferResizeCallback);
 }
 
 VulkanWindow::~VulkanWindow()
